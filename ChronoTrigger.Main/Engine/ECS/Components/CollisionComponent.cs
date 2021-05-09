@@ -20,7 +20,6 @@ namespace ChronoTrigger.Engine.ECS.Components
         //TODO Decouple Position from this.
         public RotatingRect Hitbox;
         public Vector2 Offset;
-        public bool Solid;
 
         public Entity Entity;
 

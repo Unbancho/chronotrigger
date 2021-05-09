@@ -26,8 +26,9 @@ namespace ChronoTrigger.Game.Scenes
 
             StartSystem<WarpEventSystem>();
             
-            StartSystem<PushSystem>();
             StartSystem<RepulsionSystem2>();
+            StartSystem<PushSystem>();
+            
             StartSystem<InteractionSystem>();
             StartSystem<LookSystem>();
             StartSystem<MovementAnimationSystem>();

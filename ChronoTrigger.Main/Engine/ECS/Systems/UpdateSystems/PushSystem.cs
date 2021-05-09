@@ -29,10 +29,10 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             for (var index = 0; index < count; index++)
             {
                 if (!Events.TryPop(out var collisionEvent)) continue;
-                if (!collisionEvent.Sender.Get<CollisionComponent>().Solid) continue;
                 ref var movementSender = ref collisionEvent.Sender.Get<MovementComponent>();
                 ref var movementTarget = ref collisionEvent.Target.Get<MovementComponent>();
-                movementSender.Velocity += movementTarget.Velocity;
+                if(movementSender.Velocity != movementTarget.Velocity)
+                    movementSender.Velocity += movementTarget.Velocity;
             }
         }
 

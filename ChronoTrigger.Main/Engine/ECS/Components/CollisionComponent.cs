@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
 using ModusOperandi.ECS.Components;
-using ModusOperandi.ECS.Entities;
 using SFML.Graphics;
 
 // ReSharper disable UnassignedField.Global
@@ -15,44 +14,31 @@ namespace ChronoTrigger.Engine.ECS.Components
     }
     
     [Component]
-    public struct CollisionComponent : ITransformableComponent, ISizeableComponent, IDebugDrawableComponent, IEquatable<CollisionComponent>
+    public struct CollisionComponent : ISizeableComponent, IDebugDrawableComponent
     {
         //TODO Decouple Position from this.
-        public RotatingRect Hitbox;
+        public Vector2 Hitbox;
         public Vector2 Offset;
-
-        public Entity Entity;
-
+        
         public Vector2 Size
         {
-            get => new(Hitbox.Width, Hitbox.Height);
-            set => (Hitbox.Width, Hitbox.Height) = (value.X, value.Y);
+            get => Hitbox;
+            set => Hitbox = value;
         }
 
-        public Vector2 TransformPosition
-        {
-            get => Hitbox.Position;
-            set => (Hitbox.Left, Hitbox.Top) = (value.X + Offset.X, value.Y + Offset.Y);
-        }
-
+        private float _rotation;
         public float Rotation
         {
-            get => Hitbox.Rotation;
-            set => Hitbox.Rotation = value * 0.0174533f;
+            get => _rotation;
+            set => _rotation = value * 0.0174533f;
         }
 
         public Drawable DebugDrawable => new Sprite(null, new(0, 0,
-            (int) Hitbox.Width, (int) Hitbox.Height))
+            (int) Hitbox.X, (int) Hitbox.Y))
         {
-            Position = new(Hitbox.Left, Hitbox.Top),
             Color = new(255, 0, 0, 128),
             Rotation = Rotation / 0.0174533f
         };
-
-        public bool Equals(CollisionComponent other)
-        {
-            return Entity == other.Entity;
-        }
     }
 
     public struct RotatingRect

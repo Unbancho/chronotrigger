@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using ChronoTrigger.Engine.ECS.Components;
 using ChronoTrigger.Extensions;
 using ModusOperandi.ECS;
@@ -103,25 +104,56 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     }
     
     [UpdateSystem]
-    public sealed class MoveCollisionSystem : MoveComponentSystem<CollisionComponent>
+    [Include(typeof(TransformComponent))]
+    [Include(typeof(CollisionComponent))]
+    public sealed class MoveCollisionSystem : UpdateEntitySystem
     {
-        private static readonly SpatialHash<CollisionComponent> Components = new(10);
+        private static readonly SpatialHash<CollisionPackage> Components = new(10);
 
-        public static CollisionComponent[] Nearby(CollisionComponent c) => Components.GetNearby(c);
+        public static CollisionPackage[] Nearby(CollisionPackage c) => Components.GetNearby(c);
+
+        public static CollisionPackage[] GetAll => Components.Elements.ToArray();
 
         public override void Execute(float deltaTime)
         {
             Components.Clear();
             base.Execute(deltaTime);
         }
+        
+        public struct CollisionPackage : ITransformableComponent, ISizeableComponent, IEquatable<CollisionPackage>
+        {
+            public RotatingRect Rect;
+            public Entity Entity;
+            public Vector2 TransformPosition
+            {
+                get => Rect.Position;
+                set => Rect.Position = value;
+            }
+            public Vector2 Size
+            {
+                get => Rect.Size;
+                set => Rect.Size = value;
+            }
+            public bool Equals(CollisionPackage other)
+            {
+                return Entity == other.Entity;
+            }
+        }
 
         public override void ActOnEntity(Entity entity, float deltaTime)
         {
-            ref var collisionComponent = ref entity.Get<CollisionComponent>();
-            var position = entity.Get<TransformComponent>().Position;
-            collisionComponent.TransformPosition = position;
-            collisionComponent.Entity = entity;
-            Components.AddBox(collisionComponent);
+            var collisionComponent = entity.Get<CollisionComponent>();
+            var position = entity.Get<TransformComponent>().Position + collisionComponent.Offset;
+            var rotatingRect = new RotatingRect()
+            {
+                Size = collisionComponent.Hitbox,
+                Position = position
+            };
+            Components.AddBox(new ()
+            {
+                Rect = rotatingRect,
+                Entity = entity
+            });
         }
     }
 

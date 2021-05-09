@@ -12,6 +12,8 @@ namespace ChronoTrigger.Extensions
 
         private readonly Dictionary<(int, int), List<T>> _contents = new();
 
+        public List<T> Elements { get; } = new();
+
         public int Count { get; private set; }
         
         public SpatialHash(int cellSize)
@@ -21,21 +23,9 @@ namespace ChronoTrigger.Extensions
 
         private (int, int) Hash(Vector2 point) => new ((int)point.X / _cellSize, (int)point.Y / _cellSize);
 
-        public void Add(T component)
-        {
-            var key = Hash(component.TransformPosition);
-            if(_contents.ContainsKey(key))
-                _contents[key].Add(component);
-            else
-            {
-                _contents.Add(key, new(){component});
-            }
-
-            Count++;
-        }
-
         public void AddBox(T component)
         {
+            Elements.Add(component);
             var (min, max) = (Hash(component.TransformPosition), 
                 Hash(component.TransformPosition+component.Size));
             for (var i = min.Item1; i < max.Item1 + 1; i++)
@@ -82,6 +72,7 @@ namespace ChronoTrigger.Extensions
         public void Clear()
         {
             _contents.Clear();
+            Elements.Clear();
             Count = 0;
         }
 

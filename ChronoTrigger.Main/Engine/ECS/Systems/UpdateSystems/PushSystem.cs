@@ -13,12 +13,8 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     {
         public override bool ValidEvent(in CollisionEvent e)
         {
-            return base.ValidEvent(e) && base.ValidEvent(new ()
-            {
-                Overlap = e.Overlap,
-                Sender = e.Target,
-                Target = e.Sender
-            });
+            return base.ValidEvent(e) && base.ValidEvent(new (e.TargetPackage, e.SenderPackage,
+                e.Overlap));
         }
 
         public void PreExecution() { }

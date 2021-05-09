@@ -12,9 +12,19 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 {
     public readonly struct CollisionEvent : InteractiveComponent.IInteractionEvent, IEquatable<CollisionEvent>
     {
-        public Entity Sender { get; init; }
-        public Entity Target { get; init; }
-        public RotatingRect Overlap { get; init; }
+        public readonly MoveCollisionSystem.CollisionPackage SenderPackage;
+        public readonly MoveCollisionSystem.CollisionPackage TargetPackage;
+        public Entity Sender => SenderPackage.Entity;
+        public Entity Target => TargetPackage.Entity;
+        public readonly RotatingRect Overlap;
+
+        public CollisionEvent(MoveCollisionSystem.CollisionPackage sender, MoveCollisionSystem.CollisionPackage target, 
+            RotatingRect overlap)
+        {
+            SenderPackage = sender;
+            TargetPackage = target;
+            Overlap = overlap;
+        }
 
         public bool Equals(CollisionEvent other)
         {
@@ -30,30 +40,6 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             ComplementarySystems.Add(new MoveCollisionSystem());
             Parallel = false;
         }
-        
-        private void Do(int i, IReadOnlyList<CollisionComponent> components)
-        {
-            var componentA = components[i];
-            for (var j = i + 1; j < components.Count; j++)
-            {
-                var componentB = components[j];
-                if (!Colliding(componentA, componentB, out var overlap)) continue;
-                var sender = componentA.Entity;
-                var target = componentB.Entity;
-                Emit(new()
-                {
-                    Sender = sender,
-                    Target = target,
-                    Overlap = overlap
-                });
-                Emit(new()
-                {
-                    Sender = target,
-                    Target = sender,
-                    Overlap = overlap
-                });
-            }
-        }
 
         public void PreExecution() { }
 
@@ -62,7 +48,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             if (!Parallel)
             {
                 var set = new HashSet<CollisionEvent>();
-                var components = Ecs.GetComponentManager<CollisionComponent>().Components.ComponentArray;
+                var components = MoveCollisionSystem.GetAll;
                 for (var i = 0; i < components.Length; i++)
                 {
                     var componentA = components[i];
@@ -70,21 +56,9 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
                     for (var index = 0; index < bs.Length; index++)
                     {
                         var componentB = bs[index];
-                        if (!Colliding(componentA, componentB, out var overlap)) continue;
-                        var sender = componentA.Entity;
-                        var target = componentB.Entity;
-                        set.Add(new()
-                        {
-                            Sender = sender,
-                            Target = target,
-                            Overlap = overlap
-                        });
-                        set.Add(new()
-                        {
-                            Sender = target,
-                            Target = sender,
-                            Overlap = overlap
-                        });
+                        if (!Colliding(componentA.Rect, componentB.Rect, out var overlap)) continue;
+                        set.Add(new(componentA, componentB, overlap));
+                        set.Add(new(componentB, componentA, overlap));
                     }
                 }
 
@@ -97,9 +71,9 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 
         public void PostExecution() { }
 
-        private static bool Colliding(CollisionComponent c, CollisionComponent tc, out RotatingRect overlap)
+        private static bool Colliding(RotatingRect c, RotatingRect tc, out RotatingRect overlap)
         {
-            return c.Hitbox.IntersectsOrTouches(tc.Hitbox, out overlap);
+            return c.IntersectsOrTouches(tc, out overlap);
         }
     }
 }

@@ -206,7 +206,7 @@ namespace ChronoTrigger.Game
                     foreach (var scene in SceneManager.ActiveScenes)
                     {
                         scene.ToggleSystem<MouserHoverDebugSystem>();
-                        scene.ToggleSystem<DebugDrawSystem<CollisionComponent>>();
+                        //scene.ToggleSystem<DebugDrawSystem<CollisionComponent>>();
                         scene.ToggleSystem<DebugDrawSystem<TransformComponent>>();
                         scene.ToggleSystem<PositionMapSystem>();
                         scene.ToggleSystem<EntityDebugSystem>();

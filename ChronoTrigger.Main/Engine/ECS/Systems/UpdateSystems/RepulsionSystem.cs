@@ -9,6 +9,7 @@ using ModusOperandi.ECS.Systems.SystemInterfaces;
 
 namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 {
+    /*
     [UpdateSystem]
     [Include(typeof(MovementComponent))]
     [Include(typeof(TransformComponent))]
@@ -79,6 +80,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             return p != t.Position;
         }
     }
+    */
 
     [UpdateSystem]
     [Include(typeof(RepulsionComponent))]
@@ -100,20 +102,18 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             {
                 if (!Events.TryPop(out var collisionEvent)) continue;
                 var repulse = collisionEvent.Sender.Get<RepulsionComponent>().Force;
-                ref var collider = ref collisionEvent.Target.Get<CollisionComponent>();
+                ref var transform = ref collisionEvent.Target.Get<TransformComponent>();
+                var colliderPosition = collisionEvent.TargetPackage.Rect.Position;
                 var overlap = collisionEvent.Overlap;
                 var horizontal = overlap.Height > overlap.Width;
-                
                 if (horizontal)
                 {
-                    collider.Hitbox.Left += (repulse.X + overlap.Width) * (overlap.Left == collider.Hitbox.Left ? 1 : -1);
+                    transform.Position.X += (repulse.X + overlap.Width) * (overlap.Left == colliderPosition.X ? 1 : -1);
                 }
                 else
                 {
-                    collider.Hitbox.Top += (repulse.Y + overlap.Height) * (overlap.Top == collider.Hitbox.Top ? 1 : -1);
+                    transform.Position.Y += (repulse.Y + overlap.Height) * (overlap.Top == colliderPosition.Y ? 1 : -1);
                 }
-
-                collisionEvent.Target.Get<TransformComponent>().Position = collider.TransformPosition - collider.Offset;
             }
         }
 

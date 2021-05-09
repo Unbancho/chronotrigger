@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;UNMANAGED</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;UNMANAGED</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2020.2.0-eap" />
+    <PackageReference Include="JetBrains.dotMemoryUnit" Version="3.1.20200127.214830" />
+    <PackageReference Include="SFML.Net" Version="2.5.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0-preview.1.20120.5" />
+    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="YamlDotNet" Version="8.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ModusOperandi.ECS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\ModusOperandi\ModusOperandi.ECS\bin\Debug\netcoreapp5.0\ModusOperandi.ECS.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Engine\ECS\Systems\BattleSystems\ActionBarSystem.cs" />
+    <Compile Remove="Engine\ECS\Systems\BattleSystems\BattleSelectMoveSystem.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ChronoTrigger": {
+      "commandName": "Project",
+      "commandLineArgs": "TestScene"
+    }
+  }
+}

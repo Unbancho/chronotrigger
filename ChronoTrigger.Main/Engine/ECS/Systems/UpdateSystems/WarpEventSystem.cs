@@ -1,5 +1,4 @@
-﻿using System;
-using ChronoTrigger.Engine.ECS.Components;
+﻿using ChronoTrigger.Engine.ECS.Components;
 using ModusOperandi.ECS.Entities;
 using ModusOperandi.ECS.Systems;
 using ModusOperandi.ECS.Systems.SystemAttributes;
@@ -20,7 +19,6 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             {
                 if (!Events.TryPop(out var collisionEvent)) continue;
                 var warp = collisionEvent.Sender.Get<WarpComponent>();
-                Console.WriteLine(warp.Scene);
             }
         }
 

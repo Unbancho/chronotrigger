@@ -1,62 +1,15 @@
 #define UNMANAGED
 
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 using ChronoTrigger.Engine.ECS.Components;
 using ChronoTrigger.Extensions;
-using ModusOperandi.ECS;
 using ModusOperandi.ECS.Entities;
 using ModusOperandi.ECS.Systems;
 using ModusOperandi.ECS.Systems.SystemAttributes;
 
 namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 {
-    public readonly struct CombinedComponent<T1, T2>
-    {
-        public readonly T1 Component1;
-        public readonly T2 Component2;
-
-        public CombinedComponent(T1 component1, T2 component2)
-        {
-            Component1 = component1;
-            Component2 = component2;
-        }
-    }
-    public class CombineComponentsSystem<T1, T2, TS> : UpdateEntitySystem
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where TS : ICollection<CombinedComponent<T1, T2>>, new()
-    {
-        public static readonly TS CombinedComponents = new();
-        public override void ActOnEntity(Entity entity, float deltaTime)
-        {
-            CombinedComponents.Add(new CombinedComponent<T1, T2>());
-        }
-    }
-    
-    
-    [UpdateSystem]
-    public class MoveComponentSystem<T> : UpdateEntitySystem where T :
-#if UNMANAGED
-        unmanaged
-#else
-        struct
-#endif
-        , ITransformableComponent
-    {
-        public MoveComponentSystem()
-        {
-            var a = Archetypes[0];
-            Archetypes[0] = new (a.Signature | Ecs.GetSignature<T>(), a.AntiSignature);
-        }
-        
-        public override void ActOnEntity(Entity entity, float deltaTime)
-        {
-            entity.Get<T>().TransformPosition = entity.Get<TransformComponent>().Position;
-        }
-    }
-
     [UpdateSystem]
     [Include(typeof(TextureComponent))]
     [Include(typeof(TransformComponent))]
@@ -75,11 +28,20 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 
             public int CompareTo(Sprite other)
             {
-                var adjustedHeight = TransformComponent.Position.Y + TextureComponent.TextureRect.Height;
-                var otherAdjustedHeight =
-                    other.TransformComponent.Position.Y + other.TextureComponent.TextureRect.Height;
-                var yc = adjustedHeight.CompareTo(otherAdjustedHeight);
-                return yc != 0 ? yc : 1;
+                int SpriteComparison(Sprite sprite)
+                {
+                    var adjustedHeight = sprite.TransformComponent.Position.Y + sprite.TextureComponent.TextureRect.Height;
+                    var otherAdjustedHeight =
+                        other.TransformComponent.Position.Y + other.TextureComponent.TextureRect.Height;
+                    var yc = adjustedHeight.CompareTo(otherAdjustedHeight);
+                    return yc != 0 ? yc : 1;
+                }
+
+                if (TextureComponent.Layer == other.TextureComponent.Layer &&
+                    TextureComponent.Layer == LayerEnum.Sprite)
+                    return SpriteComparison(this);
+                var layerCompare = ((sbyte) TextureComponent.Layer).CompareTo((sbyte) other.TextureComponent.Layer);
+                return layerCompare != 0 ? layerCompare : 1;
             }
         }
         
@@ -166,7 +128,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
         {
             ref var childPosition = ref entity.Get<TransformComponent>().Position;
             var parent = entity.Get<ParentComponent>();
-            var parentTransform = parent.Entity.Get<TransformComponent>();
+            var parentTransform = parent.Parent.Get<TransformComponent>();
             var offset = parent.Offset;
             childPosition = parentTransform.Position - offset;
         }

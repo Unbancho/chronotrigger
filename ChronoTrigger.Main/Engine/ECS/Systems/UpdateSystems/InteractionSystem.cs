@@ -1,7 +1,6 @@
 ﻿using ChronoTrigger.Engine.Controls;
 using ChronoTrigger.Engine.ECS.Components;
 using ModusOperandi.ECS;
-using ModusOperandi.ECS.Components;
 using ModusOperandi.ECS.Entities;
 using ModusOperandi.ECS.Systems;
 using ModusOperandi.ECS.Systems.SystemAttributes;
@@ -47,7 +46,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 
         public void PostExecution() { }
 
-        private static void Interact(InteractiveComponent.IInteractionEvent @event)
+        private static void Interact<T>(T @event) where T: InteractiveComponent.IInteractionEvent
         {
             ref var interactive = ref @event.Sender.Get<InteractiveComponent>();
             //var actives = interactive.ScriptSignature & interactive.FlagTriggerSignature;

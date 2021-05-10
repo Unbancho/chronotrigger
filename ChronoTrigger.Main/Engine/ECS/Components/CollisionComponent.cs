@@ -16,7 +16,6 @@ namespace ChronoTrigger.Engine.ECS.Components
     [Component]
     public struct CollisionComponent : ISizeableComponent, IDebugDrawableComponent
     {
-        //TODO Decouple Position from this.
         public Vector2 Hitbox;
         public Vector2 Offset;
         

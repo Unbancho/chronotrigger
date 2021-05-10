@@ -20,6 +20,8 @@ namespace ChronoTrigger.Game.Scenes
             StartSystem<LeaderInputSystem>();
             StartSystem<MovementSystem>();
 
+            StartSystem<MoveChildSystem>();
+
             StartSystem<BoundsCollisionSystem>();
             
             StartSystem<CollisionSystem>();
@@ -36,7 +38,6 @@ namespace ChronoTrigger.Game.Scenes
             
             StartSystem<InertiaSystem>();
             
-            StartSystem<TextureLayerDraw<BackgroundTextureComponent>>();
             StartSystem<SpriteDrawSystem>();
 
             StartSystem<UpdateViewSystemBase>();

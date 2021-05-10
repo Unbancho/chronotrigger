@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using ChronoTrigger.Engine.ECS.Components;
 using ChronoTrigger.Engine.ECS.Systems.UpdateSystems;
 using ModusOperandi.ECS.Systems;
 using ModusOperandi.ECS.Systems.SystemAttributes;
@@ -22,7 +23,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.DrawSystems
         {
             var texture = component.TextureComponent;
             var transform = component.TransformComponent;
-            spriteBatch.Draw(texture.TexturePtr, transform.TransformPosition, texture.TextureRect, texture.Color,
+            spriteBatch.Draw(texture.TexturePtr, transform.TransformPosition, texture.TextureRect, TextureComponent.Color,
                 texture.Scale, texture.Origin);
         }
     }

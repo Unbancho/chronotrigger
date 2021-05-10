@@ -122,7 +122,7 @@ namespace ChronoTrigger.Extensions
 
         public bool Contains(T item)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public void CopyTo(T[] array) => CopyTo(array, 0, Count);
@@ -141,7 +141,7 @@ namespace ChronoTrigger.Extensions
 
         public bool Remove(T item)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public int Count { get; private set; } = 0;

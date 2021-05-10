@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using ChronoTrigger.Engine.ECS.Components;
-using ModusOperandi.ECS;
 using ModusOperandi.ECS.Entities;
 using ModusOperandi.ECS.Systems;
 using ModusOperandi.ECS.Systems.SystemAttributes;
@@ -47,7 +45,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
         {
             if (!Parallel)
             {
-                var set = new HashSet<CollisionEvent>();
+                var set = new Dictionary<float, CollisionEvent>();
                 var components = MoveCollisionSystem.GetAll;
                 for (var i = 0; i < components.Length; i++)
                 {
@@ -57,12 +55,12 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
                     {
                         var componentB = bs[index];
                         if (!Colliding(componentA.Rect, componentB.Rect, out var overlap)) continue;
-                        set.Add(new(componentA, componentB, overlap));
-                        set.Add(new(componentB, componentA, overlap));
+                        set[componentA.Entity + componentB.Entity*0.1f] = new(componentA, componentB, overlap);
+                        set[componentB.Entity + componentA.Entity *0.1f] = new(componentB, componentA, overlap);
                     }
                 }
 
-                foreach (var @event in set)
+                foreach (var @event in set.Values)
                 {
                     Emit(@event);
                 }

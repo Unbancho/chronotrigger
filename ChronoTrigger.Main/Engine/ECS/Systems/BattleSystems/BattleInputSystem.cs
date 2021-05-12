@@ -1,14 +1,12 @@
 ﻿using ChronoTrigger.Engine.ECS.Components;
-using ModusOperandi.ECS.Archetypes;
 using ModusOperandi.ECS.Entities;
-using ModusOperandi.ECS.Systems;
 using ModusOperandi.ECS.Systems.SystemAttributes;
 using SFML.Window;
 
 namespace ChronoTrigger.Engine.ECS.Systems.BattleSystems
 {
     [UpdateSystem]
-    public class BattleInputSystem : UpdateEntitySystem
+    public class BattleInputSystem
     {
         private readonly Keyboard.Key[] _actionKeys =
         {
@@ -24,7 +22,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.BattleSystems
 
         private uint _selectedEntity;
 
-        public override void ActOnEntity(Entity entity, float deltaTime)
+        public void ActOnEntity(Entity entity, float deltaTime)
         {
             if (!Keyboard.IsKeyPressed(_selectionKeys[entity.Get<PartyMemberComponent>().Spot])) return;
             ((Entity) _selectedEntity).Get<BattleComponent>().IsSelected = false;

@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-using ChronoTrigger.Engine.ECS.Components;
-using ChronoTrigger.Engine.ECS.Systems.DrawSystems;
+﻿using ChronoTrigger.Engine.ECS.Systems.DrawSystems;
 using ChronoTrigger.Engine.ECS.Systems.SfmlSystems;
 using ChronoTrigger.Engine.ECS.Systems.UpdateSystems;
 using JetBrains.Annotations;
@@ -22,7 +20,7 @@ namespace ChronoTrigger.Game.Scenes
 
             StartSystem<MoveChildSystem>();
 
-            StartSystem<BoundsCollisionSystem>();
+            //StartSystem<BoundsCollisionSystem>();
             
             StartSystem<CollisionSystem>();
 

@@ -60,7 +60,8 @@ namespace ChronoTrigger.Tests
             var movementSystem = new MovementSystem();
             for (var i = 0; i < frameRate; i++)
             {
-                movementSystem.ActOnEntity(movingEntity, 1f/frameRate);
+                throw new NotImplementedException();
+                //movementSystem.ActOnEntity(movingEntity, 1f/frameRate);
             }
 
             var actual = movingEntity.Get<TransformComponent>().Position;

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using ChronoTrigger.Engine.ECS.Components;
 using ModusOperandi.ECS.Entities;
 using ModusOperandi.ECS.Systems;
@@ -9,17 +9,16 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 {
     [UpdateSystem]
     [Include(typeof(TransformComponent))]
-    public class PositionMapSystem : UpdateEntitySystem
+    public class PositionMapSystem : UpdateEntitySystem<GameLoop.GameState>
     {
-        public static readonly Dictionary<Vector2i, Entity> EntityScreenPositions = new();
+        public static readonly ConcurrentDictionary<Vector2i, Entity> EntityScreenPositions = new();
 
-        public override void Execute(float deltaTime)
+        public override void PreExecution()
         {
             EntityScreenPositions.Clear();
-            base.Execute(deltaTime);
         }
 
-        public override void ActOnEntity(Entity entity, float deltaTime)
+        public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
         {
             var t = entity.Get<TransformComponent>();
             var p = t.Position;

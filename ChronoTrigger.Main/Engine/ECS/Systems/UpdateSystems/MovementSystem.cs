@@ -8,16 +8,16 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     [UpdateSystem]
     [Include(typeof(TransformComponent))]
     [Include(typeof(MovementComponent))]
-    public sealed class MovementSystem : UpdateEntitySystem
+    public sealed class MovementSystem : UpdateEntitySystem<GameLoop.GameState>
     {
-        public override void ActOnEntity(Entity entity, float deltaTime)
-        {
-            Move(ref entity.Get<TransformComponent>(), entity.Get<MovementComponent>());
-        }
-
         private static void Move(ref TransformComponent tComponent, MovementComponent mComponent)
         {
             tComponent.Position += mComponent.Velocity;
+        }
+
+        public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
+        {
+            Move(ref entity.Get<TransformComponent>(), entity.Get<MovementComponent>());
         }
     }
 }

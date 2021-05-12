@@ -10,9 +10,19 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     [Include(typeof(FollowerComponent))]
     [Include(typeof(MovementComponent))]
     [Include(typeof(TransformComponent))]
-    public sealed class FollowSystem : UpdateEntitySystem
+    public sealed class FollowSystem : UpdateEntitySystem<GameLoop.GameState>
     {
-        public override void ActOnEntity(Entity entity, float deltaTime)
+        private static void SetupTransform(ref MovementComponent movementComponent,
+            FollowerComponent followerComponent,
+            float deltaTime, float distance, Vector2 direction)
+        {
+            var excessDistance = distance - followerComponent.DistanceToKeep;
+            var speed = excessDistance / followerComponent.DistanceToKeep + 0.2f; //0.1f * excessDistance;
+            if (movementComponent.Speed > 1.5f) speed += 0.5f;
+            movementComponent.Velocity = direction * speed * deltaTime;
+        }
+
+        public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
         {
             ref var followerComponent = ref entity.Get<FollowerComponent>();
             var followerTarget = followerComponent.Target;
@@ -24,21 +34,11 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             if (distance > followerComponent.DistanceToKeep)
             {
                 SetupTransform(ref entity.Get<MovementComponent>(),
-                    followerComponent, deltaTime, distance, Vector2.Normalize(positionDifference));
+                    followerComponent, gameState.DeltaTime, distance, Vector2.Normalize(positionDifference));
                 return;
             }
 
             entity.Get<MovementComponent>().Velocity *= 0;
-        }
-
-        private static void SetupTransform(ref MovementComponent movementComponent,
-            FollowerComponent followerComponent,
-            float deltaTime, float distance, Vector2 direction)
-        {
-            var excessDistance = distance - followerComponent.DistanceToKeep;
-            var speed = excessDistance / followerComponent.DistanceToKeep + 0.2f; //0.1f * excessDistance;
-            if (movementComponent.Speed > 1.5f) speed += 0.5f;
-            movementComponent.Velocity = direction * speed * deltaTime;
         }
     }
 }

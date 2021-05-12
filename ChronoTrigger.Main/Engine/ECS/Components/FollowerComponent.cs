@@ -1,4 +1,3 @@
-using System.Numerics;
 using ModusOperandi.ECS.Components;
 using ModusOperandi.ECS.Entities;
 

@@ -12,16 +12,10 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     [Include(typeof(AnimationComponent))]
     [Include(typeof(TransformComponent))]
     [Include(typeof(MovementComponent))]
-    public sealed class MovementAnimationSystem : UpdateEntitySystem
+    public sealed class MovementAnimationSystem : UpdateEntitySystem<GameLoop.GameState>
     {
         public float IdleSpeedLimit { get; set; } = 1 / 100f;
         public float AnimationSpeedConstant { get; set; } = 70f;
-
-        public override void ActOnEntity(Entity entity, float deltaTime)
-        {
-            UpdateAnimation(ref entity.Get<AnimationComponent>(),
-                entity.Get<MovementComponent>(), deltaTime);
-        }
 
         private void UpdateAnimation(ref AnimationComponent animationComponent,
             MovementComponent movementComponent, float deltaTime)
@@ -38,6 +32,12 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             if (Math.Abs(speed) < IdleSpeedLimit) return AnimationType.Idle;
             var jogging = speed > 1.25f && currentAnimation == AnimationType.Running; // To fix glitching out.
             return speed < 2f && !jogging ? AnimationType.Walking : AnimationType.Running;
+        }
+
+        public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
+        {
+            UpdateAnimation(ref entity.Get<AnimationComponent>(),
+                entity.Get<MovementComponent>(), gameState.DeltaTime);
         }
     }
 }

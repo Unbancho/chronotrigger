@@ -13,7 +13,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     [UpdateSystem]
     [Include(typeof(TextureComponent))]
     [Include(typeof(TransformComponent))]
-    public sealed class MoveSpriteSystem : UpdateEntitySystem
+    public sealed class MoveSpriteSystem : UpdateEntitySystem<GameLoop.GameState>
     {
         public readonly struct Sprite : IComparable<Sprite>
         {
@@ -58,17 +58,21 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             }
         }
 
-        public override void ActOnEntity(Entity entity, float deltaTime)
+        public MoveSpriteSystem()
+        {
+            Parallel = false;
+        }
+
+        public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
         {
             ref var textureComponent = ref entity.Get<TextureComponent>();
-            SortedSprites.Add(new (textureComponent, entity.Get<TransformComponent>()));
-        }
+            SortedSprites.Add(new (textureComponent, entity.Get<TransformComponent>()));        }
     }
     
     [UpdateSystem]
     [Include(typeof(TransformComponent))]
     [Include(typeof(CollisionComponent))]
-    public sealed class MoveCollisionSystem : UpdateEntitySystem
+    public sealed class MoveCollisionSystem : UpdateEntitySystem<GameLoop.GameState>
     {
         private static readonly SpatialHash<CollisionPackage> Components = new(10);
 
@@ -76,16 +80,16 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 
         public static CollisionPackage[] GetAll => Components.Elements.ToArray();
 
-        public override void Execute(float deltaTime)
+        public override void PreExecution()
         {
-            Components.Clear();
-            base.Execute(deltaTime);
+            Parallel = false;
+            Components.Clear<CollisionComponent>();
         }
-        
+
         public struct CollisionPackage : ITransformableComponent, ISizeableComponent, IEquatable<CollisionPackage>
         {
             public RotatingRect Rect;
-            public Entity Entity;
+            public Entity Entity { get; init; }
             public Vector2 TransformPosition
             {
                 get => Rect.Position;
@@ -100,31 +104,56 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             {
                 return Entity == other.Entity;
             }
+
+            public override bool Equals(object obj)
+            {
+                return obj is CollisionPackage package && Equals(package);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hash = 17;
+                    hash = hash * 23 + Entity.ID.GetHashCode();
+                    return hash;
+                }
+            }
         }
 
-        public override void ActOnEntity(Entity entity, float deltaTime)
+        public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
         {
             var collisionComponent = entity.Get<CollisionComponent>();
             var position = entity.Get<TransformComponent>().Position + collisionComponent.Offset;
             var rotatingRect = new RotatingRect()
             {
                 Size = collisionComponent.Hitbox,
-                Position = position
+                Position = position,
+                Rotation = collisionComponent.Rotation
             };
-            Components.AddBox(new ()
+            if(rotatingRect.Rotation != 0)
+                Components.AddRotatedBox(new ()
+                {
+                    Rect = rotatingRect,
+                    Entity = entity
+                });
+            else
             {
-                Rect = rotatingRect,
-                Entity = entity
-            });
+                Components.AddBox(new ()
+                {
+                    Rect = rotatingRect,
+                    Entity = entity
+                });
+            }
         }
     }
 
     [UpdateSystem]
     [Include(typeof(ParentComponent))]
     [Include(typeof(TransformComponent))]
-    public sealed class MoveChildSystem : UpdateEntitySystem
+    public sealed class MoveChildSystem : UpdateEntitySystem<GameLoop.GameState>
     {
-        public override void ActOnEntity(Entity entity, float deltaTime)
+        public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
         {
             ref var childPosition = ref entity.Get<TransformComponent>().Position;
             var parent = entity.Get<ParentComponent>();

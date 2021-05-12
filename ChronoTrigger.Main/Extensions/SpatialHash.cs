@@ -10,11 +10,9 @@ namespace ChronoTrigger.Extensions
     {
         private readonly int _cellSize;
 
-        private readonly Dictionary<(int, int), List<T>> _contents = new();
+        private readonly Dictionary<float, List<T>> _contents = new();
 
         public List<T> Elements { get; } = new();
-
-        public int Count { get; private set; }
         
         public SpatialHash(int cellSize)
         {
@@ -31,7 +29,28 @@ namespace ChronoTrigger.Extensions
             for (var i = min.Item1; i < max.Item1 + 1; i++)
             for (var j = min.Item2;  j < max.Item2 + 1; j++)
             {
-                var key = (i, j); 
+                //TODO: Pretty sure this is bad because of more than 1 digit numbers.
+                var key = i + j * 0.1f; 
+                if(_contents.TryGetValue(key, out var list))
+                    list.Add(component);
+                else
+                {
+                    var newList = new List<T>(Ecs.GetComponentManager<T>().AssignedComponents){component};
+                    _contents.Add(key, newList);
+                }
+            }
+        }
+
+        public void AddRotatedBox(T component)
+        {
+            Elements.Add(component);
+            var maxSize = component.Size.X > component.Size.Y ? component.Size.X : component.Size.Y;
+            var (min, max) = (Hash(component.TransformPosition), 
+                Hash(component.TransformPosition+new Vector2(maxSize, maxSize)));
+            for (var i = min.Item1; i < max.Item1 + 1; i++)
+            for (var j = min.Item2;  j < max.Item2 + 1; j++)
+            {
+                var key = i + j * 0.1f; 
                 if(_contents.TryGetValue(key, out var list))
                     list.Add(component);
                 else
@@ -51,7 +70,7 @@ namespace ChronoTrigger.Extensions
             for (var i = min.Item1; i < max.Item1 + 1; i++)
             for (var j = min.Item2; j < max.Item2 + 1; j++)
             {
-                var key = (i, j);
+                var key = i+j*0.1f;
                 buckets.Add(_contents[key]);
             }
 
@@ -69,15 +88,11 @@ namespace ChronoTrigger.Extensions
             return nearby.ToArray();
         }
 
-        public void Clear()
+        public void Clear<T1>() where T1 : unmanaged
         {
             _contents.Clear();
             Elements.Clear();
-            Count = 0;
+            Elements.Capacity = Ecs.GetComponentManager<T1>().AssignedComponents;
         }
-
-        public void CopyTo(List<T>[] list) => _contents.Values.CopyTo(list, 0);
-
-        public Dictionary<(int, int), List<T>>.ValueCollection Buckets => _contents.Values;
     }
 }

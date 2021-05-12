@@ -11,7 +11,7 @@ namespace ChronoTrigger.Engine.ECS.Components
     }
 
     [Component]
-    public struct TransformComponent : IDebugDrawableComponent, ITransformableComponent
+    public struct TransformComponent : IDebugDrawableComponent
     {
         public Vector2 Position;
 
@@ -21,11 +21,5 @@ namespace ChronoTrigger.Engine.ECS.Components
             Position = Position.ToVector2f(),
             Color = new(0, 0, 255, 255)
         };
-
-        public Vector2 TransformPosition
-        {
-            get => Position;
-            set => Position = value;
-        }
     }
 }

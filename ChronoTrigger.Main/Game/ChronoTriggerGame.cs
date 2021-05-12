@@ -17,6 +17,7 @@ using JetBrains.Annotations;
 using ModusOperandi.ECS;
 using ModusOperandi.ECS.Entities;
 using ModusOperandi.ECS.Scenes;
+using ModusOperandi.ECS.Systems.SystemInterfaces;
 using ModusOperandi.Utils.YAML;
 using SFML.Graphics;
 using SFML.System;
@@ -178,7 +179,7 @@ namespace ChronoTrigger.Game
 
         protected override void Update(GameState gameState)
         {
-            foreach (var scene in SceneManager.ActiveScenes) scene.Update(gameState.GameTime.DeltaTime);
+            foreach (var scene in SceneManager.ActiveScenes) scene.Update(gameState);
             Joystick.Update();
         }
 
@@ -224,18 +225,15 @@ namespace ChronoTrigger.Game
         protected override void Draw(GameState state)
         {
             foreach (var scene in SceneManager.ActiveScenes) Window.Draw(scene);
-            
+
             RunSfmlSystems(state);
         }
 
-        private void RunSfmlSystems(GameState state)
+        private static void RunSfmlSystems(GameState state)
         {
-            foreach (var scene in SceneManager.ActiveScenes)
+            foreach (var system in Scene.GetSystems<SfmlSystemAttribute>())
             {
-                foreach (var system in Scene.GetSystems<SfmlSystemAttribute>())
-                {
-                    ((SfmlSystemBase)system).Run(state);
-                }
+                ((ISystem<GameState>)system).Run(state);
             }
         }
 

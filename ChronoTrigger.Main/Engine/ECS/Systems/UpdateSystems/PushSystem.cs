@@ -9,7 +9,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     [UpdateSystem]
     [Include(typeof(MovementComponent))]
     [Include(typeof(TransformComponent))]
-    public sealed class PushSystem : EventListenerSystem<CollisionEvent>, IUpdateSystem
+    public sealed class PushSystem : EventListenerSystem<CollisionEvent>, ISystem<GameLoop.GameState>
     {
         public override bool ValidEvent(in CollisionEvent e)
         {
@@ -17,9 +17,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
                 e.Overlap));
         }
 
-        public void PreExecution() { }
-
-        public void Execute(float deltaTime)
+        public void Run(GameLoop.GameState gameState)
         {
             var count = Events.Count;
             for (var index = 0; index < count; index++)
@@ -31,7 +29,5 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
                     movementSender.Velocity += movementTarget.Velocity;
             }
         }
-
-        public void PostExecution() { }
     }
 }

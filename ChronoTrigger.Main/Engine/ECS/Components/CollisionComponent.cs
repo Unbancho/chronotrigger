@@ -1,7 +1,9 @@
 using System;
 using System.Numerics;
+using ChronoTrigger.Engine.ECS.Systems.DrawSystems;
 using ModusOperandi.ECS.Components;
 using SFML.Graphics;
+using SFML.System;
 
 // ReSharper disable UnassignedField.Global
 
@@ -110,68 +112,24 @@ namespace ChronoTrigger.Engine.ECS.Components
             return i;
         }
 
-
-        private static Vector2[] AnglePoints(RotatingRect r)
-        {
-            var points = new[]
-            {
-                r.Position, new Vector2(r.Size.X, 0),
-                new Vector2(0, r.Size.Y),
-                new Vector2(r.Size.X, r.Size.Y)
-            };
-            for (var i = 1; i < points.Length; i++)
-            {
-                ref var v = ref points[i];
-                var (x, y) = (v.X, v.Y);
-                v.X = x * r._cos - y * r._sin + r.Position.X;
-                v.Y = x * r._sin + y * r._cos + r.Position.Y;
-            }
-
-            return points;
-        }
-
         //TODO: Make this work.
         public bool IntersectsOrTouchesAngled(RotatingRect r, out RotatingRect overlap)
         {
-            var a = AnglePoints(this);
-            var b = AnglePoints(r);
-
-            overlap = default;
-
-            for (var i = 0; i < a.Length; ++i)
+            var spriteA = new Sprite(null, new(0, 0,
+                (int) Width, (int) Height))
             {
-                var current = a[i];
-                var next = a[(i + 1) % a.Length];
-                var edge = next - current;
+                Rotation = Rotation / 0.0174533f,
+                Position = Position.ToVector2f()
+            };
 
-                var axis = new Vector2(-edge.Y, edge.X);
-
-                var aMax = float.NegativeInfinity;
-                var aMin = float.PositiveInfinity;
-                var bMax = float.NegativeInfinity;
-                var bMin = float.PositiveInfinity;
-
-                foreach (var v in a)
-                {
-                    var proj = Vector2.Dot(axis, v);
-                    if (proj < aMin) aMin = proj;
-                    if (proj > aMax) aMax = proj;
-                }
-
-                foreach (var v in b)
-                {
-                    var proj = Vector2.Dot(axis, v);
-                    if (proj < bMin) bMin = proj;
-                    if (proj > bMax) bMax = proj;
-                }
-
-                if (aMax <= bMin || aMin >= bMax)
-                    return false;
-            }
-
-            overlap.Width = Position.X > b[^1].X ? 1 : -1;
-            overlap.Height = Position.Y > b[^1].Y ? -1 : 1;
-            return true;
+            var spriteB = new Sprite(null, new(0, 0,
+                (int) r.Width, (int) r.Height))
+            {
+                Rotation = r.Rotation / 0.0174533f,
+                Position = r.Position.ToVector2f()
+            };
+            overlap = default;
+            return BoundingBoxTest(spriteA, spriteB);
         }
 
         public Vector2 Size
@@ -184,6 +142,72 @@ namespace ChronoTrigger.Engine.ECS.Components
         {
             get => new(_floatRect.Left, _floatRect.Top);
             set => (_floatRect.Left, _floatRect.Top) = (value.X, value.Y);
+        }
+        
+
+        public readonly struct OrientedBoundingBox // Used in the BoundingBoxTest
+		{
+			public OrientedBoundingBox (Sprite @object) // Calculate the four points of the OBB from a transformed (scaled, rotated...) sprite
+			{
+				var trans = @object.Transform;
+				var local = @object.TextureRect;
+                Points = new Vector2f[4];
+                Points[0] = trans.TransformPoint(0f, 0f);
+				Points[1] = trans.TransformPoint(local.Width, 0f);
+				Points[2] = trans.TransformPoint(local.Width, local.Height);
+				Points[3] = trans.TransformPoint(0f, local.Height);
+			}
+
+            public readonly Vector2f[] Points;
+
+            public void ProjectOntoAxis (Vector2f axis, ref float min, ref float max) // Project all four points of the OBB onto the given axis and return the dotproducts of the two outermost points
+			{
+				min = (Points[0].X*axis.X+Points[0].Y*axis.Y);
+				max = min;
+				for (var j = 1; j<4; j++)
+				{
+					var projection = Points[j].X*axis.X+Points[j].Y*axis.Y;
+
+					if (projection<min)
+						min=projection;
+					if (projection>max)
+						max=projection;
+				}
+			}
+        }
+
+		bool BoundingBoxTest(Sprite object1, Sprite object2) 
+        {
+			OrientedBoundingBox obb1 = new(object1);
+			OrientedBoundingBox obb2 = new(object2);
+
+			// Create the four distinct axes that are perpendicular to the edges of the two rectangles
+			Vector2f[] axes = {
+				new (obb1.Points[1].X-obb1.Points[0].X,
+				obb1.Points[1].Y-obb1.Points[0].Y),
+				new (obb1.Points[1].X-obb1.Points[2].X,
+				obb1.Points[1].Y-obb1.Points[2].Y),
+				new (obb2.Points[0].X-obb2.Points[3].X,
+				obb2.Points[0].Y-obb2.Points[3].Y),
+				new (obb2.Points[0].X-obb2.Points[1].X,
+				obb2.Points[0].Y-obb2.Points[1].Y)
+                
+            };
+
+			for (var i = 0; i<4; i++) // For each axis...
+			{
+				float minObb1 = 0f, maxObb1 = 0f, minObb2 = 0f, maxObb2 = 0f;
+
+				// ... project the points of both OBBs onto the axis ...
+				obb1.ProjectOntoAxis(axes[i], ref minObb1, ref maxObb1);
+				obb2.ProjectOntoAxis(axes[i], ref minObb2, ref maxObb2);
+
+				// ... and check whether the outermost projected points of both OBBs overlap.
+				// If this is not the case, the Separating Axis Theorem states that there can be no collision between the rectangles
+				if (!(minObb2<=maxObb1 && maxObb2>=minObb1))
+					return false;
+			}
+            return true;
         }
     }
 

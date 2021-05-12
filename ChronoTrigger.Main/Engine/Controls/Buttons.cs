@@ -4,26 +4,10 @@ using SFML.Window;
 
 namespace ChronoTrigger.Engine.Controls
 {
-    //[Flags]
+    [Flags]
     public enum Buttons : short
     {
-        Left = 0b00,
-        Up = 0b01,
-        Right = 0b10,
-        Down = 0b11,
-
-        // Possibly add diagonal directional buttons.
-
-        A = 0b1000,
-        B = 0b1001,
-        X = 0b1010,
-        Y = 0b1011,
-        L = 0b1100,
-        R = 0b1101,
-        Start = 0b1110,
-        Select = 0b1111
-
-        /*
+        Null = 0,
         Right = 1 << 0,
         Left = 1 << 1,
         Up = 1 << 2,
@@ -37,7 +21,22 @@ namespace ChronoTrigger.Engine.Controls
         R = 1 << 9,
         Start = 1 << 10,
         Select = 1 << 11
-        */
+    }
+
+    public static class ButtonsManager
+    {
+        private static readonly int NumberOfButtons = Enum.GetValues(typeof(Buttons)).Length-1;
+        public static Buttons GetState()
+        {
+            var state = Buttons.Null;
+            for (var i = 0; i < NumberOfButtons; i++)
+            {
+                var button = (Buttons) (1 << i);
+                state |= button.IsPressed() ? button : 0;
+            }
+
+            return state;
+        }
     }
 
     public static class ControlsExtensions

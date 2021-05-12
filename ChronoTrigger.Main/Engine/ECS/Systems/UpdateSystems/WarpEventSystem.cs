@@ -8,11 +8,9 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 {
     [UpdateSystem]
     [Include(typeof(WarpComponent))]
-    public sealed class WarpEventSystem : EventListenerSystem<CollisionEvent>, IUpdateSystem
+    public sealed class WarpEventSystem : EventListenerSystem<CollisionEvent>, ISystem<GameLoop.GameState>
     {
-        public void PreExecution() { }
-
-        public void Execute(float deltaTime)
+        public void Run(GameLoop.GameState gameState)
         {
             var count = Events.Count;
             for (var index = 0; index < count; index++)
@@ -21,7 +19,5 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
                 var warp = collisionEvent.Sender.Get<WarpComponent>();
             }
         }
-
-        public void PostExecution() { }
     }
 }

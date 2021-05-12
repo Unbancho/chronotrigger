@@ -23,7 +23,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.DrawSystems
         {
             var texture = component.TextureComponent;
             var transform = component.TransformComponent;
-            spriteBatch.Draw(texture.TexturePtr, transform.TransformPosition, texture.TextureRect, TextureComponent.Color,
+            spriteBatch.Draw(texture.TexturePtr, transform.Position, texture.TextureRect, TextureComponent.Color,
                 texture.Scale, texture.Origin);
         }
     }

@@ -11,21 +11,21 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     [Include(typeof(LookComponent))]
     [Include(typeof(TransformComponent))]
     [Include(typeof(AnimationComponent))]
-    public sealed class LookSystem : UpdateEntitySystem
+    public sealed class LookSystem : UpdateEntitySystem<GameLoop.GameState>
     {
-        public override void ActOnEntity(Entity entity, float deltaTime)
+        private static void MakeEntityLookAtTarget(Vector2 positionDifference,
+            ref AnimationComponent animationComponent)
+        {
+            animationComponent.Direction = (-positionDifference).ToDirection();
+        }
+
+        public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
         {
             var target = entity.Get<LookComponent>().Target;
             if (target.IsNullEntity()) return;
             var positionDifference = entity.Get<TransformComponent>().Position -
                                      target.Get<TransformComponent>().Position;
             MakeEntityLookAtTarget(positionDifference, ref entity.Get<AnimationComponent>());
-        }
-
-        private static void MakeEntityLookAtTarget(Vector2 positionDifference,
-            ref AnimationComponent animationComponent)
-        {
-            animationComponent.Direction = (-positionDifference).ToDirection();
         }
     }
 }

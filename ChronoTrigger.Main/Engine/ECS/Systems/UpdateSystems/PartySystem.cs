@@ -9,9 +9,9 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     [UpdateSystem]
     [Include(typeof(PartyMemberComponent))]
     [Exclude(typeof(LeaderComponent))]
-    public sealed class PartySystem : UpdateEntitySystem
+    public sealed class PartySystem : UpdateEntitySystem<GameLoop.GameState>
     {
-        private static Entity _leader;
+        public static Entity Leader { get; private set; }
         
         public PartySystem()
         {
@@ -33,41 +33,40 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             }
         }
 
-        public override void Execute(float deltaTime)
+        public override void PreExecution()
         {
-            _leader = Ecs.GetComponentManager<PartyMemberComponent>().ReverseLookUp(1);
+            Leader = Ecs.GetComponentManager<PartyMemberComponent>().ReverseLookUp(1);
         }
 
-        public override void ActOnEntity(Entity entity, float deltaTime)
-        {
 
-        }
-        
         [UpdateSystem]
         [Include(typeof(PartyMemberComponent))]
         [Include(typeof(FollowerComponent))]
         [Exclude(typeof(LeaderComponent))]
-        private sealed class PartyFollowSystem : UpdateEntitySystem
+        private sealed class PartyFollowSystem : UpdateEntitySystem<GameLoop.GameState>
         {
-            public override void ActOnEntity(Entity entity, float deltaTime)
+            public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
             {
                 var partyMember = entity.Get<PartyMemberComponent>();
                 // Doing it like this for now. Before we used to keep the distance the same but
                 // have the target be the previous party member. Not sure what to pick yet.
                 // TODO: Pick.
                 ref var followerComponent = ref entity.Get<FollowerComponent>();
-                followerComponent.Target = _leader;
-                followerComponent.DistanceToKeep = partyMember.Spot * 60;
-            }
+                followerComponent.Target = Leader;
+                followerComponent.DistanceToKeep = partyMember.Spot * 60;            }
         }
     
         [UpdateSystem]
-        private sealed class PartyLookSystem : UpdateComponentSystem<LookComponent>
+        private sealed class PartyLookSystem : UpdateComponentSystem<LookComponent, GameLoop.GameState>
         {
-            public override void ActOnComponent(ref LookComponent component, float deltaTime)
+            public override void ActOnComponent(ref LookComponent component, GameLoop.GameState gameState)
             {
-                component.Target = _leader;
+                component.Target = Leader;
             }
+        }
+
+        public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
+        {
         }
     }
 }

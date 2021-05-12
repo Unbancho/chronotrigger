@@ -1,4 +1,6 @@
 ﻿using System;
+using ChronoTrigger.Engine.Controls;
+using ModusOperandi.ECS.Systems;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -7,10 +9,12 @@ namespace ChronoTrigger.Engine
 {
     public abstract class GameLoop
     {
-        public readonly ref struct GameState
+        public readonly struct GameState : IGameState, IGameTimeState, IWindowState
         {
             public GameTime GameTime { get; init; }
+            public float DeltaTime => GameTime.DeltaTime;
             public RenderWindow Window { get; init; }
+            public Buttons InputState { get; init; }
         }
         
         protected GameLoop(uint windowWidth, uint windowHeight, string windowTitle, Color windowClearColor)
@@ -57,7 +61,8 @@ namespace ChronoTrigger.Engine
                 var state = new GameState()
                 {
                     GameTime = GameTime,
-                    Window = Window
+                    Window = Window,
+                    InputState = ButtonsManager.GetState()
                 };
                 Update(state);
                 timeSinceUpdate = 0f;

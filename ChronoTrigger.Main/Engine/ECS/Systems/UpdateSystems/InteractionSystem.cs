@@ -11,15 +11,20 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     // TODO: This.
     [UpdateSystem]
     [Include(typeof(InteractiveComponent))]
-    public sealed class InteractionSystem : EventListenerSystem<CollisionEvent>, IUpdateSystem
+    public sealed class InteractionSystem : EventListenerSystem<CollisionEvent>, ISystem<GameLoop.GameState>
     {
         private static bool _held;
 
-        public void PreExecution() { }
-
-        public void Execute(float deltaTime)
+        private static void Interact<T>(T @event) where T: InteractiveComponent.IInteractionEvent
         {
-            var pressed = Buttons.A.IsPressed();
+            ref var interactive = ref @event.Sender.Get<InteractiveComponent>();
+            //var actives = interactive.ScriptSignature & interactive.FlagTriggerSignature;
+            interactive.RunScript(@event);
+        }
+
+        public void Run(GameLoop.GameState gameState)
+        {
+            var pressed = (gameState.InputState & Buttons.A) != 0;
             if (!pressed)
             {
                 _held = false;
@@ -42,15 +47,6 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
                     continue;
                 Interact(e);
             }
-        }
-
-        public void PostExecution() { }
-
-        private static void Interact<T>(T @event) where T: InteractiveComponent.IInteractionEvent
-        {
-            ref var interactive = ref @event.Sender.Get<InteractiveComponent>();
-            //var actives = interactive.ScriptSignature & interactive.FlagTriggerSignature;
-            interactive.RunScript(@event);
         }
     }
 }

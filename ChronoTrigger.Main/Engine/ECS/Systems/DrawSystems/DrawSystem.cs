@@ -1,10 +1,8 @@
 #define UNMANAGED
 
-using System.Collections.Generic;
 using ChronoTrigger.Engine.ECS.Components;
 using ModusOperandi.ECS;
 using ModusOperandi.ECS.Entities;
-using ModusOperandi.ECS.Scenes;
 using ModusOperandi.ECS.Systems;
 using ModusOperandi.ECS.Systems.SystemAttributes;
 using ModusOperandi.ECS.Systems.SystemInterfaces;
@@ -41,16 +39,13 @@ namespace ChronoTrigger.Engine.ECS.Systems.DrawSystems
     [Include(typeof(TransformComponent))]
     public sealed class DebugDrawCollisionSystem : EntitySystem, IDrawSystem
     {
-        public Scene Scene { get; set; }
-        public List<ISystem> ComplementarySystems { get; } = new ();
-        public bool Parallel { get; set; }
         public void Draw(SpriteBatch spriteBatch)
         {
             var entities = Ecs.Query(Archetypes[0]);
             for (var i = 0; i < entities.Length; i++)
             {
                 var entity = entities[i];
-                var pos = entity.Get<TransformComponent>().TransformPosition;
+                var pos = entity.Get<TransformComponent>().Position;
                 var collision = entity.Get<CollisionComponent>();
                 var sprite = (Sprite) collision.DebugDrawable;
                 sprite.Position = pos.ToVector2f() + collision.Offset.ToVector2f();

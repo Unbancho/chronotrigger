@@ -10,7 +10,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     [UpdateSystem]
     [Include(typeof(TextureComponent))]
     [Include(typeof(AnimationComponent))]
-    public sealed class AnimationSystem : UpdateEntitySystem
+    public sealed class AnimationSystem : UpdateEntitySystem<GameLoop.GameState>
     {
         private static void SetSprite(ref TextureComponent drawable, ref AnimationComponent animated)
         {
@@ -22,7 +22,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             drawable.Scale = animationStruct.Mirrored ? new (-1, 1) : Vector2.One;
         }
 
-        public override void ActOnEntity(Entity entity, float deltaTime)
+        public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
         {
             SetSprite(ref entity.Get<TextureComponent>(), ref entity.Get<AnimationComponent>());
         }

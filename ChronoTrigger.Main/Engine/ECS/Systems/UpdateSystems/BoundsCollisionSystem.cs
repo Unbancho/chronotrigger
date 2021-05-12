@@ -5,9 +5,9 @@ using ModusOperandi.ECS.Systems.SystemAttributes;
 namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 {
     [UpdateSystem]
-    public class BoundsCollisionSystem : UpdateComponentSystem<TransformComponent>
+    public class BoundsCollisionSystem : UpdateComponentSystem<TransformComponent, GameLoop.GameState>
     {
-        public override void ActOnComponent(ref TransformComponent component, float deltaTime)
+        public override void ActOnComponent(ref TransformComponent component, GameLoop.GameState gameState)
         {
             ref var position = ref component.Position;
             if(position.X > Scene.Bounds.X)

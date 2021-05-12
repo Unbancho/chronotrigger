@@ -2,7 +2,7 @@
   "profiles": {
     "ChronoTrigger": {
       "commandName": "Project",
-      "commandLineArgs": "TestScene"
+      "commandLineArgs": "CronoRoom"
     }
   }
 }

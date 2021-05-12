@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Numerics;
 using ChronoTrigger.Engine.ECS.Components;
-using ModusOperandi.ECS;
 
 namespace ChronoTrigger.Extensions
 {
@@ -35,7 +34,7 @@ namespace ChronoTrigger.Extensions
                     list.Add(component);
                 else
                 {
-                    var newList = new List<T>(Ecs.GetComponentManager<T>().AssignedComponents){component};
+                    var newList = new List<T>{component};
                     _contents.Add(key, newList);
                 }
             }
@@ -55,25 +54,24 @@ namespace ChronoTrigger.Extensions
                     list.Add(component);
                 else
                 {
-                    var newList = new List<T>(Ecs.GetComponentManager<T>().AssignedComponents){component};
+                    var newList = new List<T>{component};
                     _contents.Add(key, newList);
                 }
             }
         }
-
+        
         public T[] GetNearby(T t)
         {
-            var nearby = new List<T>();
-            var buckets = new List<List<T>>();
             var (min, max) = (Hash(t.TransformPosition), 
                 Hash(t.TransformPosition+t.Size));
+            var buckets = new List<List<T>>(_contents.Values.Count);
             for (var i = min.Item1; i < max.Item1 + 1; i++)
             for (var j = min.Item2; j < max.Item2 + 1; j++)
             {
                 var key = i+j*0.1f;
                 buckets.Add(_contents[key]);
             }
-
+            List<T> nearby = new ();
             for (var i = 0; i < buckets.Count; i++)
             {
                 var bucket = buckets[i];
@@ -88,11 +86,10 @@ namespace ChronoTrigger.Extensions
             return nearby.ToArray();
         }
 
-        public void Clear<T1>() where T1 : unmanaged
+        public void Clear()
         {
             _contents.Clear();
             Elements.Clear();
-            Elements.Capacity = Ecs.GetComponentManager<T1>().AssignedComponents;
         }
     }
 }

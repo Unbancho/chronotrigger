@@ -2,6 +2,7 @@
 using ChronoTrigger.Engine.ECS.Components;
 using ChronoTrigger.Engine.ECS.Systems.UpdateSystems;
 using ChronoTrigger.Engine.ResourceManagement;
+using ModusOperandi.ECS;
 using ModusOperandi.ECS.Entities;
 using ModusOperandi.ECS.Systems;
 using ModusOperandi.ECS.Systems.SystemInterfaces;
@@ -30,18 +31,10 @@ namespace ChronoTrigger.Engine.ECS.Systems.SfmlSystems
             if (PositionMapSystem.EntityScreenPositions.TryGetValue(
                 new((int) realMousePosition.X, (int) realMousePosition.Y), out var entity))
             {
+                if((Ecs.GetEntityArchetype(entity) & Ecs.GetSignature<NameComponent>()) == 0)
+                    return;
                 _text.Position = realMousePosition + new Vector2f(20, 0);
-                string str;
-                try
-                {
-                    str = entity.Get<NameComponent>().Name;
-                }
-                catch(KeyNotFoundException e)
-                {
-                    str = null;
-                }
-
-                _text.DisplayedString = str;
+                _text.DisplayedString = entity.Get<NameComponent>().Name;
             }
             else
             {

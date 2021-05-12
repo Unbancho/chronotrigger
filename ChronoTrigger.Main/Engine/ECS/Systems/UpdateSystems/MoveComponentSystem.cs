@@ -83,7 +83,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
         public override void PreExecution()
         {
             Parallel = false;
-            Components.Clear<CollisionComponent>();
+            Components.Clear();
         }
 
         public struct CollisionPackage : ITransformableComponent, ISizeableComponent, IEquatable<CollisionPackage>

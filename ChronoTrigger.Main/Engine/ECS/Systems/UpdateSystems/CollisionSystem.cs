@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using ChronoTrigger.Engine.ECS.Components;
 using ModusOperandi.ECS.Entities;
@@ -104,7 +105,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             else
             {
                 var components = MoveCollisionSystem.GetAll;
-                var collisionsArray = new HashSet<CollisionEvent>[components.Length];
+                var collisionsArray = new List<CollisionEvent>[components.Length];
                 for (var index = 0; index < collisionsArray.Length; index++)
                 {
                     collisionsArray[index] = new();
@@ -113,22 +114,25 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
                 {
                     var componentA = components[i];
                     var bs = MoveCollisionSystem.Nearby(componentA);
+                    var cache = new bool[MoveCollisionSystem.MaxEntity+1];
                     for (var index = 0; index < bs.Length; index++)
                     {
                         var componentB = bs[index];
+                        if (cache[componentB.Entity.ID]) continue;
                         if (!Colliding(componentA.Rect, componentB.Rect, out var overlap)) continue;
                         collisionsArray[i].Add(new(componentA, componentB, overlap));
-                        collisionsArray[i].Add(new(componentB, componentA, overlap));
+                        //collisionsArray[i].Add(new(componentB, componentA, overlap));
+                        cache[componentB.Entity.ID] = true;
                     }
                 });
-                var set = new HashSet<CollisionEvent>();
-                foreach (var s in collisionsArray)
+                for (var i = 0; i < collisionsArray.Length; i++)
                 {
-                    set.UnionWith(s);
-                }
-                foreach (var @event in set)
-                {
-                    Emit(@event);
+                    var set = collisionsArray[i];
+                    for (var index = 0; index < set.Count; index++)
+                    {
+                        var @event = set[index];
+                        Emit(@event);
+                    }
                 }
             }
         }

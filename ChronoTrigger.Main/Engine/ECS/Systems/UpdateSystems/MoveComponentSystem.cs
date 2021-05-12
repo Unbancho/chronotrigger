@@ -76,8 +76,8 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     {
         private static readonly SpatialHash<CollisionPackage> Components = new(10);
 
-        public static CollisionPackage[] Nearby(CollisionPackage c) => Components.GetNearby(c);
-
+        public static Span<CollisionPackage> Nearby(CollisionPackage c) => Components.GetNearby(c);
+        public static uint MaxEntity => Components.Max;
         public static CollisionPackage[] GetAll => Components.Elements.ToArray();
 
         public override void PreExecution()
@@ -86,7 +86,12 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             Components.Clear();
         }
 
-        public struct CollisionPackage : ITransformableComponent, ISizeableComponent, IEquatable<CollisionPackage>
+        public interface IEntityIdentified
+        {
+            public Entity Entity {get;}
+        }
+        
+        public struct CollisionPackage : ITransformableComponent, ISizeableComponent, IEquatable<CollisionPackage>, IEntityIdentified
         {
             public RotatingRect Rect;
             public Entity Entity { get; init; }
@@ -102,7 +107,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             }
             public bool Equals(CollisionPackage other)
             {
-                return Entity == other.Entity;
+                return Entity.ID == other.Entity.ID;
             }
 
             public override bool Equals(object obj)

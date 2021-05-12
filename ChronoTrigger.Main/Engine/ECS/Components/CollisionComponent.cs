@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using ModusOperandi.ECS.Components;
 using SFML.Graphics;
-using SFML.System;
 
 // ReSharper disable UnassignedField.Global
 
@@ -66,7 +65,7 @@ namespace ChronoTrigger.Engine.ECS.Components
         public float Left
         {
             get => Position.X;
-            set => Position = new(value, Position.Y); //value*_cos + _floatRect.Top*_sin;
+            set => Position = new(value, Position.Y);
         }
 
         public float Top
@@ -90,17 +89,8 @@ namespace ChronoTrigger.Engine.ECS.Components
         public RotatingRect(FloatRect fr, float rotation = 0)
         {
             _floatRect = fr;
-            //_cos = 0;
             _sin = 0;
             Rotation = rotation;
-        }
-
-        public bool Intersects(RotatingRect r, out RotatingRect overlap)
-        {
-            if (Rotation != 0 || r.Rotation != 0) return IntersectsOrTouchesAngled(r, out overlap);
-            var i = _floatRect.Intersects(r._floatRect, out var innerOverlap);
-            overlap = new(innerOverlap);
-            return i;
         }
 
         public bool IntersectsOrTouches(RotatingRect r, out RotatingRect overlap)
@@ -111,11 +101,47 @@ namespace ChronoTrigger.Engine.ECS.Components
             return i;
         }
 
-        //TODO: Make this work.
+        private readonly ref struct Points4
+        {
+            public readonly Vector2 A;
+            public readonly Vector2 B;
+            public readonly Vector2 C;
+            public readonly Vector2 D;
+
+            public Points4(Vector2 a, Vector2 b, Vector2 c, Vector2 d)
+            {
+                A = a;
+                B = b;
+                C = c;
+                D = d;
+            }
+        }
+
         public bool IntersectsOrTouchesAngled(RotatingRect r, out RotatingRect overlap)
         {
             overlap = default;
-            return BoundingBoxTest(this, r);
+            var obb1 = AnglePoints(this);
+            var obb2 = AnglePoints(r);
+
+            Span<Vector2> axes = stackalloc Vector2[4]{
+                new Vector2(obb1.B.X-obb1.A.X,
+                    obb1.B.Y-obb1.A.Y),
+                new Vector2(obb1.B.X-obb1.C.X,
+                    obb1.B.Y-obb1.C.Y),
+                new Vector2(obb2.A.X-obb2.D.X,
+                    obb2.A.Y-obb2.D.Y),
+                new Vector2(obb2.A.X-obb2.B.X,
+                    obb2.A.Y-obb2.B.Y)
+            };
+
+            for (var i = 0; i<4; i++)
+            {
+                ProjectOntoAxis(obb1, axes[i], out var minObb1, out var maxObb1);
+                ProjectOntoAxis(obb2, axes[i], out var minObb2, out var maxObb2);
+                if (!(minObb2<=maxObb1 && maxObb2>=minObb1))
+                    return false;
+            }
+            return true;
         }
 
         public Vector2 Size
@@ -130,76 +156,42 @@ namespace ChronoTrigger.Engine.ECS.Components
             set => (_floatRect.Left, _floatRect.Top) = (value.X, value.Y);
         }
 
-        private readonly ref struct OrientedBoundingBox
-		{
-			public OrientedBoundingBox (RotatingRect rect)
+
+        private static void ProjectOntoAxis(in Points4 points4, Vector2 axis, out float min, out float max)
+        {
+            Span<Vector2> points = stackalloc Vector2[4] {points4.A, points4.B, points4.C, points4.D};
+            min = points[0].X * axis.X + points[0].Y * axis.Y;
+            max = min;
+            for (var j = 1; j < 4; j++)
             {
-                Points =  AnglePoints(rect);
-            }
+                var projection = points[j].X * axis.X + points[j].Y * axis.Y;
 
-            public readonly Vector2[] Points;
-
-            public void ProjectOntoAxis (Vector2 axis, out float min, out float max)
-			{
-				min = Points[0].X*axis.X+Points[0].Y*axis.Y;
-				max = min;
-				for (var j = 1; j<4; j++)
-				{
-					var projection = Points[j].X*axis.X+Points[j].Y*axis.Y;
-
-					if (projection<min)
-						min=projection;
-					if (projection>max)
-						max=projection;
-				}
-			}
-            
-            private static Vector2[] AnglePoints(RotatingRect r)
-            {
-                var points = new[]
-                {
-                    r.Position, new Vector2(r.Size.X, 0),
-                    new Vector2(r.Size.X, r.Size.Y),
-                    new Vector2(0, r.Size.Y)
-                };
-                for (var i = 1; i < points.Length; i++)
-                {
-                    ref var v = ref points[i];
-                    var (x, y) = (v.X, v.Y);
-                    v.X = x * r._cos - y * r._sin + r.Position.X;
-                    v.Y = x * r._sin + y * r._cos + r.Position.Y;
-                }
-
-                return points;
+                if (projection < min)
+                    min = projection;
+                if (projection > max)
+                    max = projection;
             }
         }
+        
 
-        private static bool BoundingBoxTest(RotatingRect object1, RotatingRect object2) 
+        private static Points4 AnglePoints(RotatingRect r)
         {
-            OrientedBoundingBox obb1 = new(object1);
-			OrientedBoundingBox obb2 = new(object2);
-
-			Vector2[] axes = {
-				new (obb1.Points[1].X-obb1.Points[0].X,
-				obb1.Points[1].Y-obb1.Points[0].Y),
-				new (obb1.Points[1].X-obb1.Points[2].X,
-				obb1.Points[1].Y-obb1.Points[2].Y),
-				new (obb2.Points[0].X-obb2.Points[3].X,
-				obb2.Points[0].Y-obb2.Points[3].Y),
-				new (obb2.Points[0].X-obb2.Points[1].X,
-				obb2.Points[0].Y-obb2.Points[1].Y)
-                
+            Span<Vector2> points = stackalloc Vector2[4]
+            {
+                r.Position, new Vector2(r.Size.X, 0),
+                new Vector2(r.Size.X, r.Size.Y),
+                new Vector2(0, r.Size.Y)
             };
+            
+            for (var i = 1; i < points.Length; i++)
+            {
+                ref var v = ref points[i];
+                var (x, y) = (v.X, v.Y);
+                v.X = x * r._cos - y * r._sin + r.Position.X;
+                v.Y = x * r._sin + y * r._cos + r.Position.Y;
+            }
 
-			for (var i = 0; i<4; i++) // For each axis...
-			{
-				obb1.ProjectOntoAxis(axes[i], out var minObb1, out var maxObb1);
-				obb2.ProjectOntoAxis(axes[i], out var minObb2, out var maxObb2);
-
-				if (!(minObb2<=maxObb1 && maxObb2>=minObb1))
-					return false;
-			}
-            return true;
+            return new (points[0], points[1], points[2], points[3]);
         }
     }
 

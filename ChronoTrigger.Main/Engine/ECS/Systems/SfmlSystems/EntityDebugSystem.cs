@@ -22,7 +22,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.SfmlSystems
         {
             var entity = ChronoTriggerGame.SelectedEntity;
             if(entity.IsNullEntity()) return;
-            var rect = entity.Get<TextureComponent>().TextureRect;
+            var rect = entity.Get<SpriteComponent>().TextureRect;
             _rectangle.Size = new(rect.Width, rect.Height);
             _rectangle.Position = entity.Get<TransformComponent>().Position.ToVector2f() - _rectangle.Size / 2;;
             gameState.Window.Draw(_rectangle);

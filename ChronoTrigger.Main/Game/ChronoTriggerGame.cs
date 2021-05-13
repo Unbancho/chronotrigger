@@ -110,8 +110,8 @@ namespace ChronoTrigger.Game
                     pos = new (realMousePosition.X, realMousePosition.Y);
                     break;
                 case 3:
-                    ref var text = ref SelectedEntity.Get<TextureComponent>();
-                    text.Scale = Vector2.Zero;
+                    ref var sprite = ref SelectedEntity.Get<SpriteComponent>();
+                    sprite.Scale = Vector2.Zero;
                     break;
                 default:
                     break;

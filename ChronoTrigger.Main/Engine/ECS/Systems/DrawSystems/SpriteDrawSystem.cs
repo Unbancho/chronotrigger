@@ -21,10 +21,11 @@ namespace ChronoTrigger.Engine.ECS.Systems.DrawSystems
 
         public override void DrawComponent(MoveSpriteSystem.Sprite component, SpriteBatch spriteBatch)
         {
+            var sprite = component.SpriteComponent;
             var texture = component.TextureComponent;
             var transform = component.TransformComponent;
-            spriteBatch.Draw(texture.TexturePtr, transform.Position, texture.TextureRect, TextureComponent.Color,
-                texture.Scale, texture.Origin);
+            spriteBatch.Draw(texture.TexturePtr, transform.Position, sprite.TextureRect, TextureComponent.Color,
+                sprite.Scale, sprite.Origin);
         }
     }
 

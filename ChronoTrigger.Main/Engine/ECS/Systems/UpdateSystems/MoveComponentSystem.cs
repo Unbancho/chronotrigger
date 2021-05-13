@@ -11,6 +11,7 @@ using ModusOperandi.ECS.Systems.SystemAttributes;
 namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 {
     [UpdateSystem]
+    [Include(typeof(SpriteComponent))]
     [Include(typeof(TextureComponent))]
     [Include(typeof(TransformComponent))]
     public sealed class MoveSpriteSystem : UpdateEntitySystem<GameLoop.GameState>
@@ -19,20 +20,23 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
         {
             public readonly TextureComponent TextureComponent;
             public readonly TransformComponent TransformComponent;
+            public readonly SpriteComponent SpriteComponent;
 
-            public Sprite(TextureComponent textureComponent, TransformComponent transformComponent)
+            public Sprite(TextureComponent textureComponent, TransformComponent transformComponent, 
+                SpriteComponent spriteComponent)
             {
                 TextureComponent = textureComponent;
                 TransformComponent = transformComponent;
+                SpriteComponent = spriteComponent;
             }
 
             public int CompareTo(Sprite other)
             {
                 int SpriteComparison(Sprite sprite)
                 {
-                    var adjustedHeight = sprite.TransformComponent.Position.Y + sprite.TextureComponent.TextureRect.Height;
+                    var adjustedHeight = sprite.TransformComponent.Position.Y + sprite.SpriteComponent.TextureRect.Height;
                     var otherAdjustedHeight =
-                        other.TransformComponent.Position.Y + other.TextureComponent.TextureRect.Height;
+                        other.TransformComponent.Position.Y + other.SpriteComponent.TextureRect.Height;
                     var yc = adjustedHeight.CompareTo(otherAdjustedHeight);
                     return yc != 0 ? yc : 1;
                 }
@@ -66,7 +70,9 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
         public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
         {
             ref var textureComponent = ref entity.Get<TextureComponent>();
-            SortedSprites.Add(new (textureComponent, entity.Get<TransformComponent>()));        }
+            SortedSprites.Add(new(textureComponent, entity.Get<TransformComponent>(),
+                entity.Get<SpriteComponent>()));
+        }
     }
     
     [UpdateSystem]

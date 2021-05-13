@@ -8,11 +8,11 @@ using ModusOperandi.ECS.Systems.SystemAttributes;
 namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 {
     [UpdateSystem]
-    [Include(typeof(TextureComponent))]
+    [Include(typeof(SpriteComponent))]
     [Include(typeof(AnimationComponent))]
     public sealed class AnimationSystem : UpdateEntitySystem<GameLoop.GameState>
     {
-        private static void SetSprite(ref TextureComponent drawable, ref AnimationComponent animated)
+        private static void SetSprite(ref SpriteComponent drawable, ref AnimationComponent animated)
         {
             var animationStruct = ResourceManager<long, AnimationStruct>.Get(animated.AnimationKey);
             if (animationStruct.Frames == null) return;
@@ -24,7 +24,7 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 
         public override void ActOnEntity(Entity entity, GameLoop.GameState gameState)
         {
-            SetSprite(ref entity.Get<TextureComponent>(), ref entity.Get<AnimationComponent>());
+            SetSprite(ref entity.Get<SpriteComponent>(), ref entity.Get<AnimationComponent>());
         }
     }
 }

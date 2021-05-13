@@ -76,7 +76,8 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
     {
         private static readonly SpatialHash<CollisionPackage> Components = new(10);
 
-        public static Span<CollisionPackage> Nearby(CollisionPackage c) => Components.GetNearby(c);
+        public static Span<CollisionPackage> Nearby(CollisionPackage c) 
+            => Components.GetNearby(c, c.Rect.Rotation != 0);
         public static uint MaxEntity => Components.Max;
         public static CollisionPackage[] GetAll => Components.Elements.ToArray();
 
@@ -136,20 +137,11 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
                 Position = position,
                 Rotation = collisionComponent.Rotation
             };
-            if(rotatingRect.Rotation != 0)
-                Components.AddRotatedBox(new ()
-                {
-                    Rect = rotatingRect,
-                    Entity = entity
-                });
-            else
+            Components.AddBox(new ()
             {
-                Components.AddBox(new ()
-                {
-                    Rect = rotatingRect,
-                    Entity = entity
-                });
-            }
+                Rect = rotatingRect,
+                Entity = entity
+            }, rotatingRect.Rotation != 0);
         }
     }
 

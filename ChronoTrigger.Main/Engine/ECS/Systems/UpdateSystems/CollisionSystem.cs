@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using ChronoTrigger.Engine.ECS.Components;
 using ModusOperandi.ECS.Entities;
@@ -40,39 +39,6 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
             Parallel = true;
         }
 
-        private readonly struct Pair : IEquatable<Pair>
-        {
-            private readonly uint _a;
-            private readonly uint _b;
-
-            public Pair(uint a, uint b)
-            {
-                _a = a;
-                _b = b;
-            }
-
-            public bool Equals(Pair other)
-            {
-                return _a == other._a && _b == other._b;
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    var hash = 17;
-                    hash = hash * 23 + _a.GetHashCode();
-                    hash = hash * 23 + _b.GetHashCode();
-                    return hash;
-                }
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is Pair pair && Equals(pair);
-            }
-        }
-
         private static bool Colliding(RotatingRect c, RotatingRect tc, out RotatingRect overlap)
         {
             return c.IntersectsOrTouches(tc, out overlap);
@@ -80,31 +46,32 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
         
         public void Run(GameLoop.GameState gameState)
         {
+            var components = MoveCollisionSystem.GetAll;
             if (!Parallel)
             {
-                var set = new Dictionary<Pair, CollisionEvent>();
-                var components = MoveCollisionSystem.GetAll;
+                var set = new List<CollisionEvent>();
                 for (var i = 0; i < components.Length; i++)
                 {
                     var componentA = components[i];
                     var bs = MoveCollisionSystem.Nearby(componentA);
+                    var cache = new bool[MoveCollisionSystem.MaxEntity+1];
                     for (var index = 0; index < bs.Length; index++)
                     {
                         var componentB = bs[index];
+                        if (cache[componentB.Entity.ID]) continue;
                         if (!Colliding(componentA.Rect, componentB.Rect, out var overlap)) continue;
-                        set[new(componentA.Entity.ID, componentB.Entity.ID)] = new(componentA, componentB, overlap);
-                        set[new(componentB.Entity.ID, componentA.Entity.ID)] = new(componentB, componentA, overlap);
+                        set.Add(new(componentA, componentB, overlap));
+                        cache[componentB.Entity.ID] = true;
                     }
                 }
 
-                foreach (var @event in set.Values)
+                foreach (var @event in set)
                 {
                     Emit(@event);
                 }
             }
             else
             {
-                var components = MoveCollisionSystem.GetAll;
                 var collisionsArray = new List<CollisionEvent>[components.Length];
                 for (var index = 0; index < collisionsArray.Length; index++)
                 {
@@ -121,7 +88,6 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
                         if (cache[componentB.Entity.ID]) continue;
                         if (!Colliding(componentA.Rect, componentB.Rect, out var overlap)) continue;
                         collisionsArray[i].Add(new(componentA, componentB, overlap));
-                        //collisionsArray[i].Add(new(componentB, componentA, overlap));
                         cache[componentB.Entity.ID] = true;
                     }
                 });

@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using ChronoTrigger.Engine.ECS.Components;
+using ChronoTrigger.Engine.Movement;
 using ModusOperandi.ECS;
 using ModusOperandi.ECS.Entities;
 using ModusOperandi.ECS.Systems;
@@ -8,12 +9,8 @@ using ModusOperandi.ECS.Systems.SystemInterfaces;
 
 namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
 {
-    /*
-        // Sliding effect: Colliding(left, right) || i >= -1
-        // TODO: Implement sliding off of edges effect.
-            //TODO: Make this work.
-    */
-
+    // Sliding effect: Colliding(left, right) || i >= -1
+    // TODO: Implement sliding off of edges effect.
     [UpdateSystem]
     [Include(typeof(RepulsionComponent))]
     public sealed class RepulsionSystem2 : EventListenerSystem<CollisionEvent>, ISystem<GameLoop.GameState>
@@ -51,8 +48,21 @@ namespace ChronoTrigger.Engine.ECS.Systems.UpdateSystems
                 }
                 else
                 {
-                    //transform.Position += -movement.Velocity;
-                    transform.Position += new Vector2(0, movement.Speed);
+                    //TODO: Make this work better.
+                    if (movement.Velocity.X != 0 && movement.Velocity.Y != 0)
+                    {
+                        transform.Position += -movement.Velocity;
+                        continue;
+                    }
+                    var speed = movement.Speed;
+                    var direction = movement.Velocity.ToDirection();
+                    transform.Position += direction switch
+                    {
+                        Direction.Right => speed * Vector2.UnitY,
+                        Direction.Up => speed * -Vector2.UnitX,
+                        Direction.Left => speed * -Vector2.UnitY,
+                        Direction.Down => speed * Vector2.UnitX
+                    };
                 }
 
                 if(origTransform.Position != transform.Position && movement.Speed >= 2 * gameState.DeltaTime 

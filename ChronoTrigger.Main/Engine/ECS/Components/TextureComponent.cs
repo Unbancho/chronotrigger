@@ -22,6 +22,12 @@ namespace ChronoTrigger.Engine.ECS.Components
     }
 
     [Component]
+    public struct SpriteComponent
+    {
+        
+    }
+
+    [Component]
     public struct TextureComponent
     {
         public IntPtr TexturePtr { get; private set; }
